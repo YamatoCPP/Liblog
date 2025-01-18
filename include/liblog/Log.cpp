@@ -41,7 +41,7 @@ namespace ymt
         return WriteMessage(messageText, defaultImportance);
     }
 
-    constexpr void Log::SetDefaultMessageImportance(MessageImportance messageImportance)
+    void Log::SetDefaultMessageImportance(MessageImportance messageImportance)
     {
         defaultImportance = messageImportance;
     }

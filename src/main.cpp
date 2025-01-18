@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "Log.h"
+#include "liblog/Log.h"
 
 auto ParseMessageImportance(const char*) -> ymt::Log::MessageImportance;
 auto InitLogByArgs(int, char*[])             -> std::optional<ymt::Log>;
@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
             break;
         }
         
-        std::cout << "Enter a message importance: ";
+        std::cout << "Enter a message importance(low, medium, critical): ";
         std::getline(std::cin, messageImportanceText);
 
         std::thread tr(WriteMessage, message, messageImportanceText);    
@@ -91,9 +91,9 @@ auto ParseMessageImportance(const char* messageImportance)
 {
     std::map<std::string, ymt::Log::MessageImportance> importanceMap
     {
-        { "LOW", ymt::Log::LOW },
-        { "MEDIUM", ymt::Log::MEDIUM },
-        { "CRITICAL", ymt::Log::CRITICAL }
+        { "low", ymt::Log::LOW },
+        { "medium", ymt::Log::MEDIUM },
+        { "critical", ymt::Log::CRITICAL }
     };
     
     if (importanceMap.find(messageImportance) == importanceMap.end())

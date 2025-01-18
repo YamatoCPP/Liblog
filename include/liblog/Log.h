@@ -22,11 +22,12 @@ namespace ymt
         
         Log(const std::string&, MessageImportance);
 
-        constexpr void SetDefaultMessageImportance(MessageImportance); 
-        bool WriteMessage(const std::string&, MessageImportance) const;
-        bool WriteMessage(const std::string&) const;
+        void SetDefaultMessageImportance(MessageImportance);
+        bool WriteMessage(const std::string&, MessageImportance) const; 
+        bool WriteMessage(const std::string&) const;  // Write message, with default importance 
+  
     private:
-        auto StringCurrentTime() const;
+        auto StringCurrentTime() const; 
         std::string StringMessageImportance(MessageImportance) const;
         
         mutable std::ofstream logFile;
