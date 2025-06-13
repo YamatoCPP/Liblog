@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "liblog/Log.h"
+#include <liblog/log.h>
 
 auto ParseMessageImportance(const char*) -> ymt::Log::MessageImportance;
 auto InitLogByArgs(int, char*[])             -> std::optional<ymt::Log>;

@@ -1,79 +1,37 @@
-# Variables
-CXX = g++
-CXXFLAGS = -Wall -fPIC -std=c++17
+CC = g++
+CXXFLAGS = -Wall -fPIC -std=c++17 -Iinclude -MMD
 LDFLAGS = -shared
-BUILD_DIR = build
-INCLUDE_DIR = include
-LIB_DIR = $(INCLUDE_DIR)/liblog
-SRC_DIR = src
+LIB = liblog.so
 LIB_NAME = log
-TARGET = main
+LIBDIR = include/liblog
+SRCDIR = src
+TESRDIR = tests
+BUILDDIR = build
+OBJ = $(BUILDDIR)/main.o \
+	$(BUILDDIR)/log.o
+TARGET = $(BUILDDIR)/main
 
-TEST_DIR = tests
-TEST_TARGET = log_test
-TEST_SRC = $(TEST_DIR)/$(TEST_TARGET).cpp
+VPATH = $(SRCDIR):$(LIBDIR)
+.phony: all clean test 
 
-# Получаем путь к каталогу Makefile
-MAKEFILE_DIR := $(dir $(lastword($(MAKEFILE_LIST))))
+all: $(BUILDDIR) $(TARGET)
 
-# Список исходных файлов для библиотеки
-LIB_SRCS := $(addprefix $(MAKEFILE_DIR), $(LIB_DIR)/Log.cpp)
+$(TARGET): $(OBJ) $(BUILDDIR)/$(LIB)
+	$(CC) $(CXXFLAGS) -o $@ $^ -Wl,-rpath='$$ORIGIN'
 
-# Список исходных файлов для исполняемого файла
-MAIN_SRCS := $(addprefix $(MAKEFILE_DIR), $(SRC_DIR)/main.cpp)
+$(BUILDDIR)/%.o: %.cpp
+	$(CC) $(CXXFLAGS) -o $@ -c $<
 
-# Имена объектов для библиотеки
-LIB_OBJS := $(patsubst $(MAKEFILE_DIR)$(LIB_DIR)/%.cpp, $(MAKEFILE_DIR)$(BUILD_DIR)/%.o, $(LIB_SRCS))
+$(BUILDDIR)/$(LIB): $(BUILDDIR)/log.o
+	$(CC) $(CXXFLAGS) $(LDFLAGS) -o $@ $<
 
-# Имя объектного файла для исполняемого файла
-MAIN_OBJ := $(patsubst $(MAKEFILE_DIR)$(SRC_DIR)/%.cpp, $(MAKEFILE_DIR)$(BUILD_DIR)/%.o, $(MAIN_SRCS))
+$(BUILDDIR):
+	mkdir -p $(BUILDDIR) 
 
-# Имя динамической библиотеки
-LIB_TARGET := $(MAKEFILE_DIR)$(BUILD_DIR)/lib$(LIB_NAME).so
+-include $(BUILDDIR)/*.d
 
-# Имя исполняемого файла
-MAIN_TARGET := $(MAKEFILE_DIR)$(BUILD_DIR)/$(TARGET)
+test: $(TESRDIR)/log_test.cpp $(BUILDDIR)/$(LIB)
+	$(CC) $(CXXFLAGS) -o $(BUILDDIR)/$@ -L$(BUILDDIR) -llog -Wl,-rpath='$$ORIGIN' $^
 
-# Object file for test
-TEST_OBJ := $(patsubst $(MAKEFILE_DIR)$(TEST_DIR)/%.cpp, $(MAKEFILE_DIR)$(BUILD_DIR)/%.o, $(TEST_SRC))
-
-# Test executable target
-TEST_EXECUTABLE := $(MAKEFILE_DIR)$(BUILD_DIR)/$(TEST_TARGET)
-
-# Include path for tests
-TEST_INCLUDE_PATH := -I$(MAKEFILE_DIR)$(INCLUDE_DIR)
-
-# Dependencies
-all: $(MAIN_TARGET)
-
-# Правила для динамической библиотеки
-$(LIB_TARGET): $(LIB_OBJS)
-	@mkdir -p $(MAKEFILE_DIR)$(BUILD_DIR)
-	$(CXX) $(LDFLAGS) -o $@ $^ $(CXXFLAGS)
-
-$(MAKEFILE_DIR)$(BUILD_DIR)/%.o: $(MAKEFILE_DIR)$(LIB_DIR)/%.cpp
-	@mkdir -p $(MAKEFILE_DIR)$(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -I$(MAKEFILE_DIR)$(INCLUDE_DIR) -c $< -o $@
-
-$(MAKEFILE_DIR)$(BUILD_DIR)/%.o: $(MAKEFILE_DIR)$(SRC_DIR)/%.cpp
-	@mkdir -p $(MAKEFILE_DIR)$(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -I$(MAKEFILE_DIR)$(INCLUDE_DIR) -c $< -o $@
-
-# Правила для основного исполняемого файла
-$(MAIN_TARGET): $(MAIN_OBJ) $(LIB_TARGET)
-	$(CXX) -o $@ $^ -L$(MAKEFILE_DIR)$(BUILD_DIR) -l$(LIB_NAME) -Wl,-rpath=$(MAKEFILE_DIR)$(BUILD_DIR)
-
-# Rules for the test
-test: $(TEST_EXECUTABLE)
-	./$(TEST_EXECUTABLE)
-
-$(TEST_EXECUTABLE): $(TEST_OBJ) $(LIB_TARGET)
-	$(CXX) -o $@ $^ -L$(MAKEFILE_DIR)$(BUILD_DIR) -l$(LIB_NAME) -Wl,-rpath=$(MAKEFILE_DIR)$(BUILD_DIR)
-
-$(MAKEFILE_DIR)$(BUILD_DIR)/%.o: $(MAKEFILE_DIR)$(TEST_DIR)/%.cpp
-	@mkdir -p $(MAKEFILE_DIR)$(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $(TEST_INCLUDE_PATH) -c $< -o $@
-
-# Правило для очистки
 clean:
-	rm -rf $(MAKEFILE_DIR)$(BUILD_DIR)
+	rm -rf $(BUILDDIR)
