@@ -1,36 +1,36 @@
 #ifndef LOG_HEADER
 #define LOG_HEADER
 
-#include <fstream>
-#include <string>
-#include <chrono>
-#include <iomanip>
-
-#endif 
+#include <filesystem>
+#include <string_view>
+#include <memory>
 
 namespace ymt
 {
-    class Log 
+    class Log final
     {
     public:
-        enum MessageImportance
+        enum MessageImportance : char
         {
             LOW = 0,
             MEDIUM,
             CRITICAL
         };
         
-        Log(const std::string&, MessageImportance);
-
-        void SetDefaultMessageImportance(MessageImportance);
-        bool WriteMessage(const std::string&, MessageImportance) const; 
-        bool WriteMessage(const std::string&) const;  // Write message, with default importance 
+        explicit Log(const std::filesystem::path&, MessageImportance);
+        ~Log();
+        
+        auto SetDefaultMessageImportance(MessageImportance)             -> void;
+        auto WriteMessage(std::string_view, MessageImportance)  const   -> bool; 
+        auto WriteMessage(std::string_view)                     const   -> bool;  
   
     private:
-        auto StringCurrentTime() const; 
-        std::string StringMessageImportance(MessageImportance) const;
-        
-        mutable std::ofstream logFile;
-        MessageImportance defaultImportance;
+        auto PutCurrentTime()                           const; 
+        auto StringMessageImportance(MessageImportance) const;
+    
+    private:
+        struct Impl;
+        std::unique_ptr<Impl> pimpl;
     };
 }
+#endif // ifndef LOG_HEADER

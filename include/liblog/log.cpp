@@ -1,52 +1,34 @@
 #include <liblog/log.h>
 
+#include <ctime>
+#include <iomanip>
+#include <string>
+#include <fstream>
+
 namespace ymt
 {
-    Log::Log(const std::string& filePath, MessageImportance defaultImportance) 
-        : logFile(filePath, std::ios_base::app | std::ios_base::ate), defaultImportance(defaultImportance) 
+    struct Log::Impl
     {
-        // if logFile not open throw exception
-        if (!logFile.is_open())
-            throw std::ios_base::failure("Unable to open file: " + filePath);
+        std::ofstream logFile;
+        MessageImportance defaultImportance;
+    };
+
+    Log::Log(const std::filesystem::path& filePath, MessageImportance defaultImportance) 
+        : pimpl{new Impl{{filePath, std::ios::app | std::ios::ate}, defaultImportance}}
+    {
+        if (!pimpl->logFile.is_open())
+            throw std::ios_base::failure("Unable to open file: " + std::string(filePath));
     }
 
-    auto Log::StringCurrentTime() const
-    {
-        auto messageWriteTime = std::chrono::system_clock::now();
-        auto tt = std::chrono::system_clock::to_time_t(messageWriteTime);
+    Log::~Log() = default;
 
-        return std::put_time(std::localtime(&tt), "%H-%M-%S");
+    auto Log::PutCurrentTime() const
+    {
+        std::time_t tt = std::time(nullptr);
+        return std::put_time(std::localtime(&tt), "%H:%M:%S");
     }
 
-    bool Log::WriteMessage(const std::string& messageText, 
-            MessageImportance messageImportance) const
-    {
-        /*
-        * If the importance is less than the default importance, 
-        * then false is returned without logging.
-        */
-        if (messageImportance < defaultImportance)
-            return false;
-
-        logFile << messageText << ' '
-                << StringMessageImportance(messageImportance) << ' '
-                << StringCurrentTime() << '\n'
-                << std::endl;
-        
-        return logFile.good();
-    }
-    
-    bool Log::WriteMessage(const std::string& messageText) const
-    {
-        return WriteMessage(messageText, defaultImportance);
-    }
-
-    void Log::SetDefaultMessageImportance(MessageImportance messageImportance)
-    {
-        defaultImportance = messageImportance;
-    }
-
-    std::string Log::StringMessageImportance(MessageImportance messageImportance) const
+    auto Log::StringMessageImportance(MessageImportance messageImportance) const
     {
         std::string str;
         switch (messageImportance)
@@ -54,16 +36,43 @@ namespace ymt
             case LOW:
                 str = "Low message importance";
                 break;
-           case MEDIUM:
+            case MEDIUM:
                 str = "Medium message importance";
                 break;
-           case CRITICAL: 
+            case CRITICAL: 
                 str = "Critical message importance";
                 break;
         }
         return str;
+    }
 
+    auto Log::WriteMessage(std::string_view messageText, 
+            MessageImportance messageImportance) const -> bool
+    {
+        /*
+        * If the importance is less than the default importance, 
+        * then false is returned without logging.
+        */
+        if (messageImportance < pimpl->defaultImportance)
+            return false;
+
+        std::string strMessageImportance{StringMessageImportance(messageImportance)};
+        
+        pimpl->logFile << std::left            << std::setw(29) 
+                       << strMessageImportance << " | "
+                       << PutCurrentTime()     << " | "
+                       << messageText          << std::endl; 
+        
+        return pimpl->logFile.good();
     }
     
+    auto Log::WriteMessage(std::string_view messageText) const -> bool
+    {
+        return WriteMessage(messageText, pimpl->defaultImportance);
+    }
 
+    auto Log::SetDefaultMessageImportance(MessageImportance messageImportance) -> void
+    {
+        pimpl->defaultImportance = messageImportance;
+    }
 }
