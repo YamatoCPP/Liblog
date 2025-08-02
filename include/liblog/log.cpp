@@ -9,12 +9,17 @@ namespace ymt
 {
     struct Log::Impl
     {
+        Impl(const std::filesystem::path& path,
+             MessageImportance imp)
+             : logFile(path)
+             , defaultImportance(imp)
+        {}
         std::ofstream logFile;
         MessageImportance defaultImportance;
     };
 
     Log::Log(const std::filesystem::path& filePath, MessageImportance defaultImportance)
-        : pimpl{new Impl{filePath, defaultImportance}}
+        : pimpl{std::make_unique<Impl>(Impl{filePath, defaultImportance})}
     {
         if (!pimpl->logFile.is_open())
             throw std::ios_base::failure("Unable to open file: " + std::string(filePath));

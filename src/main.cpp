@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
     for (auto& i : threadVector)
         if (i.joinable())
             try { i.join(); }
-            catch (const std::exception& ex) { std::cout << ex.what() << std::endl; }
+            catch (const std::exception& ex) { /* std::cerr << ex.what() << std::endl; */ }
 }
 
 auto ParseMessageImportance(const char* messageImportance) 
