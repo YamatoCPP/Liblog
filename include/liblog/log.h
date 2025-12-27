@@ -5,24 +5,23 @@
 #include <string_view>
 #include <memory>
 
-namespace ymt
-{
+namespace ymt {
 
-class Log final
-{
+class Log final {
 public:
-    enum MessageImportance : char
-    {
+    enum MessageImportance : char {
         LOW = 0,
         MEDIUM,
         CRITICAL
     };
     
-    explicit Log(const std::filesystem::path&, MessageImportance);
+    Log(const std::filesystem::path&, MessageImportance);
+    
     Log(const Log&) = delete;
-    Log(Log&&) = default;
+    Log(Log&&);
     Log& operator=(const Log&) = delete;
-    Log& operator=(Log&&) = default;
+    Log& operator=(Log&&);
+    
     ~Log();
     
     auto SetDefaultMessageImportance(MessageImportance)    noexcept -> void;

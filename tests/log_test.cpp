@@ -9,11 +9,8 @@ void test1()
     
     log.SetDefaultMessageImportance(ymt::Log::CRITICAL);
     log.WriteMessage("Not recorder message", ymt::Log::LOW); 
-    /* 
-     * The logfile.txt file 
-     * should only contain the first and second messages.
-     */
-
+    
+    
 }
 
 void test2()

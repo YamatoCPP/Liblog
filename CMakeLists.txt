@@ -7,6 +7,9 @@ set(CMAKE_CXX_COMPILER g++)
 
 include_directories(include)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+
 add_executable(logexc src/main.cpp)
 add_library(log SHARED include/liblog/log.cpp)
 
@@ -16,4 +19,7 @@ if(BUILD_TEST)
     target_link_libraries(tests PRIVATE log)
 endif()
 
+target_compile_options(logexc PRIVATE -O3 -march=native
+    -Wall -Werror -Wextra -Wpedantic)
+    
 target_link_libraries(logexc PRIVATE log)
